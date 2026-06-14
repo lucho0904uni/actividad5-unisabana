@@ -1,4 +1,7 @@
 # Documentación técnica del ejercicio de rendimiento
+📖 Para documentación detallada, consulta el Wiki del proyecto
+
+Estudiante : Luis Eduardo Gonzalez Mejia
 
 ## Estructura
 
