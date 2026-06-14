@@ -35,7 +35,14 @@ jobs:
 
       - name: Cleanup node processes
         run: |
-          taskkill /IM node.exe /F 2>$null || Write-Output 'No node processes to kill'
+          # Use PowerShell cmdlets to avoid non-zero exit codes from external tools
+          $proc = Get-Process -Name node -ErrorAction SilentlyContinue
+          if ($proc) {
+            Stop-Process -Name node -Force -ErrorAction SilentlyContinue
+            Write-Output 'Killed node processes'
+          } else {
+            Write-Output 'No node processes to kill'
+          }
           Start-Sleep -Seconds 2
         shell: pwsh
 

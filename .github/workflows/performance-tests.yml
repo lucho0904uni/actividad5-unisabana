@@ -3,13 +3,6 @@ name: Complete Test Suite
 on:
   push:
     branches: [ main ]
-    paths:
-      - 'perf/**'
-      - 'data/**'
-      - 'scenarios/**'
-      - 'tests/**'
-      - 'package.json'
-      - '.github/workflows/**'
   pull_request:
     branches: [ main ]
   workflow_dispatch:
