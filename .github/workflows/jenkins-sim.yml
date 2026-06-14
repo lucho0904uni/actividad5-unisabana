@@ -2,8 +2,7 @@ name: Simulate Jenkinsfile on Windows
 
 on:
   workflow_dispatch:
-  push:
-    branches: [ main ]
+  push: {}
 
 jobs:
   windows-pipeline:
