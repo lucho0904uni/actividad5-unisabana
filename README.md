@@ -1,6 +1,8 @@
 # Actividad 5 - Taller de pruebas de carga y rendimiento
 
-Este repositorio contiene un ejercicio completo de **pruebas de carga y rendimiento** sobre un servicio de **consultas de multas de tránsito**, estructurado según los puntos solicitados en el taller y dejando todo en la **rama principal (`main`)**.
+> 📖 **Para documentación detallada, consulta el [Wiki del proyecto](../../wiki)**
+
+Este repositorio contiene un ejercicio completo de **pruebas de carga y rendimiento** sobre un servicio de **consultas de multas de tránsito**, estructurado según los puntos solicitados en el taller.
 
 ## 1. Objetivo del ejercicio
 
@@ -76,7 +78,7 @@ Se usa **k6** como herramienta principal porque:
 - se integra con CI/CD
 - genera métricas claras para reportes
 
-> Para instalar k6 en Linux (Debian/Ubuntu), la documentación oficial indica agregar el repositorio de k6 con su llave GPG y luego instalarlo con `apt-get install k6`; también existe una acción oficial de Grafana para GitHub Actions (`grafana/setup-k6-action`) que simplifica la instalación en CI. citeturn0search1turn0search2
+> Para instalar k6 en Linux (Debian/Ubuntu), la documentación oficial indica agregar el repositorio de k6 con su llave GPG y luego instalarlo con `apt-get install k6`; también existe una acción oficial de Grafana para GitHub Actions.
 
 ---
 
@@ -141,7 +143,7 @@ Se incluye un dataset en:
 
 - `perf/data/voter.csv`
 
-Este archivo contiene más de 200 registros parametrizados con datos de ejemplo para evitar que todas las consultas sean idénticas y reducir el riesgo de una “caché feliz”.
+Este archivo contiene más de 200 registros parametrizados con datos de ejemplo para evitar que todas las consultas sean idénticas y reducir el riesgo de una "caché feliz".
 
 Campos incluidos:
 
@@ -361,7 +363,7 @@ Objetivo del pipeline:
 - correr `stress` y `soak` on-demand
 - fallar el pipeline si se incumplen SLOs
 
-> Grafana mantiene acciones oficiales para GitHub Actions, entre ellas `grafana/setup-k6-action`, pensadas para instalar y ejecutar k6 en CI/CD de forma más simple que una instalación manual por APT. citeturn0search2turn0search11
+> Grafana mantiene acciones oficiales para GitHub Actions, entre ellas `grafana/setup-k6-action`, pensadas para instalar y ejecutar k6 en CI/CD de forma más simple que una instalación manual por script.
 
 ---
 
