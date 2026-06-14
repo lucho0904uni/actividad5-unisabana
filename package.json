@@ -1,0 +1,14 @@
+{
+  "name": "actividad5-carga",
+  "version": "1.0.0",
+  "description": "Pruebas de carga para consultas de multas de tránsito con k6",
+  "private": true,
+  "scripts": {
+    "test:smoke": "node perf/run-k6-with-mock.js smoke",
+    "test:baseline": "node perf/run-k6-with-mock.js baseline",
+    "test:load": "node perf/run-k6-with-mock.js load",
+    "test:stress": "node perf/run-k6-with-mock.js stress",
+    "test:spike": "node perf/run-k6-with-mock.js spike",
+    "test:soak": "node perf/run-k6-with-mock.js soak"
+  }
+}

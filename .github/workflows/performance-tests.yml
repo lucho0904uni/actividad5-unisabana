@@ -1,0 +1,136 @@
+name: Complete Test Suite
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'perf/**'
+      - 'data/**'
+      - 'scenarios/**'
+      - 'tests/**'
+      - 'package.json'
+      - '.github/workflows/**'
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  smoke-test:
+    name: Smoke Test
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+      - run: npm ci
+      - run: choco install k6 -y
+      - run: taskkill /IM node.exe /F
+        continue-on-error: true
+      - run: npm run test:smoke
+        continue-on-error: true
+      - uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: smoke-results
+          path: perf/results/smoke.json
+          if-no-files-found: warn
+
+  baseline-test:
+    name: Baseline Test
+    runs-on: windows-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+      - run: npm ci
+      - run: choco install k6 -y
+      - run: taskkill /IM node.exe /F 2>$null || true
+      - run: npm run test:baseline
+        continue-on-error: true
+      - uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: baseline-results
+          path: perf/results/baseline.json
+          if-no-files-found: warn
+
+  load-test:
+    name: Load Test
+    runs-on: windows-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+      - run: npm ci
+      - run: choco install k6 -y
+      - run: taskkill /IM node.exe /F 2>$null || true
+      - run: npm run test:load
+        continue-on-error: true
+      - uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: load-results
+          path: perf/results/load.json
+          if-no-files-found: warn
+
+  stress-test:
+    name: Stress Test
+    runs-on: windows-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+      - run: npm ci
+      - run: choco install k6 -y
+      - run: taskkill /IM node.exe /F 2>$null || true
+      - run: npm run test:stress
+        continue-on-error: true
+      - uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: stress-results
+          path: perf/results/stress.json
+          if-no-files-found: warn
+
+  summary:
+    name: Test Summary
+    runs-on: windows-latest
+    needs: [smoke-test]
+    if: always()
+    steps:
+      - uses: actions/checkout@v3
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          path: artifacts
+      - name: Generate summary
+        run: |
+          "## Test Execution Summary" > summary.md
+          "" >> summary.md
+          "**Execution Time**: $(Get-Date)" >> summary.md
+          "" >> summary.md
+          "### Completed Tests:" >> summary.md
+          "" >> summary.md
+          Get-ChildItem artifacts -Directory | ForEach-Object { "- $($_.Name)" >> summary.md }
+      - name: Comment on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            if (fs.existsSync('summary.md')) {
+              const summary = fs.readFileSync('summary.md', 'utf8');
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: summary
+              });
+            }
+

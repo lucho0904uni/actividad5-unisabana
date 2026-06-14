@@ -1,0 +1,8 @@
+[
+  { "tipo": "cedula", "valor": "12345678" },
+  { "tipo": "cedula", "valor": "87654321" },
+  { "tipo": "placa", "valor": "ABC123" },
+  { "tipo": "placa", "valor": "XYZ987" },
+  { "tipo": "licencia", "valor": "LIC001122" },
+  { "tipo": "comparendo", "valor": "CMP-2026-0001" }
+]

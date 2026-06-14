@@ -1,0 +1,61 @@
+name: k6 Performance Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    - cron: '0 8 * * *'
+
+jobs:
+  test:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        scenario: [smoke, baseline, load, stress, spike, soak]
+      max-parallel: 2
+      fail-fast: false
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Install k6
+        run: choco install k6 -y
+      
+      - name: Kill lingering processes
+        continue-on-error: true
+        run: taskkill /IM node.exe /F
+      
+      - name: Run ${{ matrix.scenario }} test
+        id: test
+        continue-on-error: true
+        timeout-minutes: 120
+        run: npm run test:${{ matrix.scenario }}
+      
+      - name: Verify results file exists
+        if: always()
+        run: |
+          if (Test-Path "perf/results/${{ matrix.scenario }}.json") {
+            Write-Host "Results file created successfully"
+          } else {
+            Write-Host "Results file not found - test may have failed"
+          }
+        shell: pwsh
+      
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-results-${{ matrix.scenario }}
+          path: perf/results/${{ matrix.scenario }}.json
+          if-no-files-found: warn
