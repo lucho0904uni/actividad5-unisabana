@@ -1,0 +1,131 @@
+name: perf-tests
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  perf-local-app:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup k6
+        uses: grafana/setup-k6-action@v1
+
+      - name: Detect build tool
+        id: detect-build
+        shell: bash
+        run: |
+          if [ -f "mvnw" ]; then
+            echo "build_tool=mvnw" >> $GITHUB_OUTPUT
+          elif [ -f "pom.xml" ]; then
+            echo "build_tool=mvn" >> $GITHUB_OUTPUT
+          else
+            echo "No Maven project detected (missing mvnw and pom.xml)." >&2
+            exit 1
+          fi
+
+      - name: Install Node dependencies
+        run: npm install
+
+      - name: Build application
+        shell: bash
+        run: |
+          if [ "${{ steps.detect-build.outputs.build_tool }}" = "mvnw" ]; then
+            chmod +x mvnw
+            ./mvnw -B -DskipTests clean package
+          else
+            mvn -B -DskipTests clean package
+          fi
+
+      - name: Start Spring Boot application
+        shell: bash
+        run: |
+          mkdir -p perf/results
+          if [ -f "mvnw" ]; then
+            nohup ./mvnw spring-boot:run > perf/results/app.log 2>&1 &
+          else
+            nohup mvn spring-boot:run > perf/results/app.log 2>&1 &
+          fi
+          echo $! > perf/results/app.pid
+
+      - name: Wait for application readiness
+        shell: bash
+        run: |
+          ATTEMPTS=60
+          SLEEP_SECONDS=5
+          URL="http://localhost:8080/actuator/health"
+
+          for i in $(seq 1 $ATTEMPTS); do
+            if curl -fsS "$URL" >/dev/null 2>&1; then
+              echo "Application is ready at $URL"
+              exit 0
+            fi
+            echo "Waiting for app... attempt $i/$ATTEMPTS"
+            sleep $SLEEP_SECONDS
+          done
+
+          echo "Application did not become ready in time. Dumping app.log..."
+          cat perf/results/app.log || true
+          exit 1
+
+      - name: Sanity check endpoint
+        shell: bash
+        run: |
+          curl -v "http://localhost:8080/multas/consulta?cedula=12345678" || true
+
+      - name: Run level 1 - smoke
+        run: |
+          BASE_URL=http://localhost:8080 \
+          API_PATH=/multas/consulta \
+          REQUEST_METHOD=GET \
+          SCENARIO=smoke \
+          k6 run perf/scripts/multas_k6.js -o json=perf/results/smoke.json
+
+      - name: Run level 2 - baseline
+        run: |
+          BASE_URL=http://localhost:8080 \
+          API_PATH=/multas/consulta \
+          REQUEST_METHOD=GET \
+          SCENARIO=baseline \
+          k6 run perf/scripts/multas_k6.js -o json=perf/results/baseline.json
+
+      - name: Run level 3 - load
+        run: |
+          BASE_URL=http://localhost:8080 \
+          API_PATH=/multas/consulta \
+          REQUEST_METHOD=GET \
+          SCENARIO=load \
+          k6 run perf/scripts/multas_k6.js -o json=perf/results/load.json
+
+      - name: Upload performance artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: perf-results
+          path: |
+            perf/results/**
+
+      - name: Stop application
+        if: always()
+        shell: bash
+        run: |
+          if [ -f perf/results/app.pid ]; then
+            kill $(cat perf/results/app.pid) || true
+          fi

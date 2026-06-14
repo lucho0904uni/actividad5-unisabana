@@ -1,0 +1,143 @@
+stages:
+  - setup
+  - test
+  - report
+
+image: node:20-bullseye
+
+variables:
+  NODE_VERSION: '20'
+  K6_VERSION: 'latest'
+  PORT: '8087'
+  BASE_URL: 'http://localhost:8087'
+
+before_script:
+  - echo "K6 Performance Test Pipeline"
+  - apt-get update -y
+  - apt-get install -y gnupg wget ca-certificates
+  - wget -q -O - https://dl.k6.io/key.gpg | apt-key add -
+  - echo "deb https://dl.k6.io/deb stable main" | tee /etc/apt/sources.list.d/k6.list
+  - apt-get update -y
+  - apt-get install -y k6
+  - npm ci
+
+# Smoke Test - Always runs
+smoke_test:
+  stage: test
+  script:
+    - echo "Running smoke test..."
+    - npm run test:smoke
+  artifacts:
+    paths:
+      - perf/results/smoke.json
+    reports:
+      performance: perf/results/smoke.json
+    when: always
+    expire_in: 30 days
+  retry:
+    max: 1
+    when: unknown_failure
+  allow_failure: false
+
+# Baseline Test - Only on main branch
+baseline_test:
+  stage: test
+  script:
+    - echo "Running baseline test..."
+    - npm run test:baseline
+  artifacts:
+    paths:
+      - perf/results/baseline.json
+    reports:
+      performance: perf/results/baseline.json
+    when: always
+    expire_in: 30 days
+  only:
+    - main
+  allow_failure: true
+
+# Load Test - Only on main branch
+load_test:
+  stage: test
+  script:
+    - echo "Running load test..."
+    - npm run test:load
+  artifacts:
+    paths:
+      - perf/results/load.json
+    reports:
+      performance: perf/results/load.json
+    when: always
+    expire_in: 30 days
+  only:
+    - main
+  allow_failure: true
+
+# Stress Test - Only on main branch
+stress_test:
+  stage: test
+  script:
+    - echo "Running stress test..."
+    - npm run test:stress
+  artifacts:
+    paths:
+      - perf/results/stress.json
+    reports:
+      performance: perf/results/stress.json
+    when: always
+    expire_in: 30 days
+  only:
+    - main
+  allow_failure: true
+
+# Spike Test - Only on main branch
+spike_test:
+  stage: test
+  script:
+    - echo "Running spike test..."
+    - npm run test:spike
+  artifacts:
+    paths:
+      - perf/results/spike.json
+    reports:
+      performance: perf/results/spike.json
+    when: always
+    expire_in: 30 days
+  only:
+    - main
+  allow_failure: true
+
+# Soak Test - Only on main branch, manual trigger
+soak_test:
+  stage: test
+  script:
+    - echo "Running soak test (extended duration)..."
+    - npm run test:soak
+  artifacts:
+    paths:
+      - perf/results/soak.json
+    reports:
+      performance: perf/results/soak.json
+    when: always
+    expire_in: 30 days
+  only:
+    - main
+  when: manual
+  allow_failure: true
+
+# Test Summary Report
+test_summary:
+  stage: report
+  image: node:20-windows
+  script:
+    - echo "=== Test Execution Summary ==="
+    - if [ -f perf/results/smoke.json ]; then echo "✓ Smoke test completed"; fi
+    - if [ -f perf/results/baseline.json ]; then echo "✓ Baseline test completed"; fi
+    - if [ -f perf/results/load.json ]; then echo "✓ Load test completed"; fi
+    - if [ -f perf/results/stress.json ]; then echo "✓ Stress test completed"; fi
+    - echo "All available test results have been archived"
+  artifacts:
+    paths:
+      - perf/results/
+    expire_in: 30 days
+  when: always

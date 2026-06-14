@@ -1,0 +1,9 @@
+﻿# Node artifacts
+node_modules/
+package-lock.json
+
+# k6 result files
+perf/results/*.json
+
+# Local logs
+*.log
