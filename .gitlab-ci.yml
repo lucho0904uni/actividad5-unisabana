@@ -19,7 +19,7 @@ before_script:
   - echo "deb https://dl.k6.io/deb stable main" | tee /etc/apt/sources.list.d/k6.list
   - apt-get update -y
   - apt-get install -y k6
-  - npm ci
+  - npm install
 
 # Smoke Test - Always runs
 smoke_test:
