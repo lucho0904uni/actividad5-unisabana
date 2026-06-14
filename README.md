@@ -1,6 +1,7 @@
 # Actividad 5 - Taller de pruebas de carga y rendimiento
 
-> 📖 **Para documentación detallada, consulta el [Wiki del proyecto](../../wiki)**
+ingresar al wiki del proyecto para ver dodcumentacion completa
+
 
 Este repositorio contiene un ejercicio completo de **pruebas de carga y rendimiento** sobre un servicio de **consultas de multas de tránsito**, estructurado según los puntos solicitados en el taller.
 
