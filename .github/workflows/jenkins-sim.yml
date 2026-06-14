@@ -1,0 +1,69 @@
+name: Simulate Jenkinsfile on Windows
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+jobs:
+  windows-pipeline:
+    name: Jenkinsfile (Windows agent) Simulation
+    runs-on: windows-latest
+    timeout-minutes: 180
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+        shell: pwsh
+
+      - name: Install k6 (Chocolatey)
+        run: |
+          choco install k6 -y
+        shell: pwsh
+
+      - name: Verify k6
+        run: k6 version
+        shell: pwsh
+
+      - name: Cleanup node processes
+        run: |
+          taskkill /IM node.exe /F 2>$null || Write-Output 'No node processes to kill'
+          Start-Sleep -Seconds 2
+        shell: pwsh
+
+      - name: Run Smoke Test
+        run: npm run test:smoke
+        shell: pwsh
+
+      - name: Run Baseline Test (main only)
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        continue-on-error: true
+        run: npm run test:baseline
+        shell: pwsh
+
+      - name: Run Load Test (main only)
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        continue-on-error: true
+        run: npm run test:load
+        shell: pwsh
+
+      - name: Run Stress Test (main only)
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        continue-on-error: true
+        run: npm run test:stress
+        shell: pwsh
+
+      - name: Archive test results
+        uses: actions/upload-artifact@v7
+        with:
+          name: jenkins-sim-results
+          path: perf/results/*.json
+          if-no-files-found: warn
