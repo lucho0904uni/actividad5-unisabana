@@ -23,10 +23,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - uses: grafana/setup-k6-action@v4
+      - uses: grafana/setup-k6-action@v1
+        with:
+          k6-version: 'latest'
       - run: npm install
       - run: npm run test:smoke
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: smoke-results
@@ -42,11 +44,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - uses: grafana/setup-k6-action@v4
+      - uses: grafana/setup-k6-action@v1
+        with:
+          k6-version: 'latest'
       - run: npm install
       - run: npm run test:baseline
         continue-on-error: true
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: baseline-results
@@ -62,11 +66,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - uses: grafana/setup-k6-action@v4
+      - uses: grafana/setup-k6-action@v1
+        with:
+          k6-version: 'latest'
       - run: npm install
       - run: npm run test:load
         continue-on-error: true
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: load-results
@@ -82,11 +88,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - uses: grafana/setup-k6-action@v4
+      - uses: grafana/setup-k6-action@v1
+        with:
+          k6-version: 'latest'
       - run: npm install
       - run: npm run test:stress
         continue-on-error: true
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: stress-results
@@ -102,11 +110,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - uses: grafana/setup-k6-action@v4
+      - uses: grafana/setup-k6-action@v1
+        with:
+          k6-version: 'latest'
       - run: npm install
       - run: npm run test:spike
         continue-on-error: true
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: spike-results
@@ -122,12 +132,14 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - uses: grafana/setup-k6-action@v4
+      - uses: grafana/setup-k6-action@v1
+        with:
+          k6-version: 'latest'
       - run: npm install
       - run: npm run test:soak
         continue-on-error: true
         timeout-minutes: 180
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: soak-results
@@ -142,7 +154,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Download artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           path: artifacts
       - name: Generate summary

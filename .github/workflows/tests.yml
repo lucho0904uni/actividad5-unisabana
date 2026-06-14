@@ -29,7 +29,9 @@ jobs:
           node-version: '20'
       
       - name: Install k6
-        uses: grafana/setup-k6-action@v4
+        uses: grafana/setup-k6-action@v1
+        with:
+          k6-version: 'latest'
       
       - name: Install dependencies
         run: npm install
@@ -51,7 +53,7 @@ jobs:
       
       - name: Upload test results
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v7
         with:
           name: test-results-${{ matrix.scenario }}
           path: perf/results/${{ matrix.scenario }}.json
