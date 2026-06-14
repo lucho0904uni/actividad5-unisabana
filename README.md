@@ -1,6 +1,8 @@
 # Actividad 5 - Taller de pruebas de carga y rendimiento
 
 ingresar al wiki del proyecto para ver dodcumentacion completa
+la rama principal es la main por fa cambiar  si esta en la master
+
 
 
 Este repositorio contiene un ejercicio completo de **pruebas de carga y rendimiento** sobre un servicio de **consultas de multas de tránsito**, estructurado según los puntos solicitados en el taller.
