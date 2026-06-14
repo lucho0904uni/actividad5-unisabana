@@ -1,11 +1,11 @@
 const http = require('http');
-const url = require('url');
+const { URL } = require('url');
 
 const port = process.env.PORT || 8080;
 
 function parseQuery(reqUrl) {
-  const u = url.parse(reqUrl, true);
-  return u.query;
+  const u = new URL(reqUrl, `http://localhost:${port}`);
+  return Object.fromEntries(u.searchParams.entries());
 }
 
 const server = http.createServer((req, res) => {
@@ -13,7 +13,7 @@ const server = http.createServer((req, res) => {
   res.setHeader('Connection', 'keep-alive');
   res.setHeader('Keep-Alive', 'timeout=5, max=100');
   
-  const pathname = url.parse(req.url).pathname;
+  const pathname = new URL(req.url, `http://localhost:${port}`).pathname;
 
   if (pathname === '/actuator/health') {
     res.writeHead(200, { 'Content-Type': 'application/json' });

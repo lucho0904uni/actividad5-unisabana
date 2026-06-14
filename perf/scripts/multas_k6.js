@@ -8,7 +8,7 @@ const BASE_URL = __ENV.BASE_URL || 'http://localhost:8087';
 const API_PATH = __ENV.API_PATH || '/multas/consulta';
 const REQUEST_METHOD = (__ENV.REQUEST_METHOD || 'GET').toUpperCase();
 const TIMEOUT_MS = Number(__ENV.TIMEOUT_MS || 2000);
-const DATA_FILE = __ENV.DATA_FILE || '../../data/consultas.json';
+const DATA_FILE = __ENV.DATA_FILE || new URL('../../data/consultas.json', import.meta.url).pathname;
 
 // Load test data from JSON file
 const consultas = new SharedArray('consultas-data', function () {

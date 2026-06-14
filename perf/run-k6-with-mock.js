@@ -5,7 +5,7 @@ const path = require('path');
 
 const scenario = process.argv[2] || process.env.SCENARIO || 'smoke';
 const port = process.env.PORT || '8087';
-const dataFile = process.env.DATA_FILE || path.join('data', 'consultas.json');
+const dataFile = process.env.DATA_FILE || path.resolve('data', 'consultas.json');
 const baseUrl = process.env.BASE_URL || `http://localhost:${port}`;
 const resultsDir = path.resolve(__dirname, 'results');
 const mockServerPath = path.resolve(__dirname, 'mock-server.js');

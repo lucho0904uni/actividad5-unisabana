@@ -128,13 +128,15 @@ soak_test:
 # Test Summary Report
 test_summary:
   stage: report
-  image: node:20-windows
+  image: node:20-bullseye
   script:
     - echo "=== Test Execution Summary ==="
     - if [ -f perf/results/smoke.json ]; then echo "✓ Smoke test completed"; fi
     - if [ -f perf/results/baseline.json ]; then echo "✓ Baseline test completed"; fi
     - if [ -f perf/results/load.json ]; then echo "✓ Load test completed"; fi
     - if [ -f perf/results/stress.json ]; then echo "✓ Stress test completed"; fi
+    - if [ -f perf/results/spike.json ]; then echo "✓ Spike test completed"; fi
+    - if [ -f perf/results/soak.json ]; then echo "✓ Soak test completed"; fi
     - echo "All available test results have been archived"
   artifacts:
     paths:

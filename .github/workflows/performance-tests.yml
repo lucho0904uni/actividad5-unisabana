@@ -12,22 +12,20 @@ on:
       - '.github/workflows/**'
   pull_request:
     branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   smoke-test:
     name: Smoke Test
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - run: npm ci
-      - run: choco install k6 -y
-      - run: taskkill /IM node.exe /F
-        continue-on-error: true
+      - uses: grafana/setup-k6-action@v4
+      - run: npm install
       - run: npm run test:smoke
-        continue-on-error: true
       - uses: actions/upload-artifact@v3
         if: always()
         with:
@@ -37,16 +35,15 @@ jobs:
 
   baseline-test:
     name: Baseline Test
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - run: npm ci
-      - run: choco install k6 -y
-      - run: taskkill /IM node.exe /F 2>$null || true
+      - uses: grafana/setup-k6-action@v4
+      - run: npm install
       - run: npm run test:baseline
         continue-on-error: true
       - uses: actions/upload-artifact@v3
@@ -58,16 +55,15 @@ jobs:
 
   load-test:
     name: Load Test
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - run: npm ci
-      - run: choco install k6 -y
-      - run: taskkill /IM node.exe /F 2>$null || true
+      - uses: grafana/setup-k6-action@v4
+      - run: npm install
       - run: npm run test:load
         continue-on-error: true
       - uses: actions/upload-artifact@v3
@@ -79,16 +75,15 @@ jobs:
 
   stress-test:
     name: Stress Test
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - run: npm ci
-      - run: choco install k6 -y
-      - run: taskkill /IM node.exe /F 2>$null || true
+      - uses: grafana/setup-k6-action@v4
+      - run: npm install
       - run: npm run test:stress
         continue-on-error: true
       - uses: actions/upload-artifact@v3
@@ -98,10 +93,51 @@ jobs:
           path: perf/results/stress.json
           if-no-files-found: warn
 
+  spike-test:
+    name: Spike Test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - uses: grafana/setup-k6-action@v4
+      - run: npm install
+      - run: npm run test:spike
+        continue-on-error: true
+      - uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: spike-results
+          path: perf/results/spike.json
+          if-no-files-found: warn
+
+  soak-test:
+    name: Soak Test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - uses: grafana/setup-k6-action@v4
+      - run: npm install
+      - run: npm run test:soak
+        continue-on-error: true
+        timeout-minutes: 180
+      - uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: soak-results
+          path: perf/results/soak.json
+          if-no-files-found: warn
+
   summary:
     name: Test Summary
-    runs-on: windows-latest
-    needs: [smoke-test]
+    runs-on: ubuntu-latest
+    needs: [smoke-test, baseline-test, load-test, stress-test, spike-test, soak-test]
     if: always()
     steps:
       - uses: actions/checkout@v3
@@ -111,13 +147,21 @@ jobs:
           path: artifacts
       - name: Generate summary
         run: |
-          "## Test Execution Summary" > summary.md
-          "" >> summary.md
-          "**Execution Time**: $(Get-Date)" >> summary.md
-          "" >> summary.md
-          "### Completed Tests:" >> summary.md
-          "" >> summary.md
-          Get-ChildItem artifacts -Directory | ForEach-Object { "- $($_.Name)" >> summary.md }
+          echo "## Test Execution Summary" > summary.md
+          echo "" >> summary.md
+          echo "**Execution Time**: $(date -u)" >> summary.md
+          echo "" >> summary.md
+          echo "### Completed Tests:" >> summary.md
+          echo "" >> summary.md
+          if [ -d artifacts ]; then
+            for item in artifacts/*; do
+              if [ -e "$item" ]; then
+                echo "- $(basename "$item")" >> summary.md
+              fi
+            done
+          else
+            echo "- No artifacts were found." >> summary.md
+          fi
       - name: Comment on PR
         if: github.event_name == 'pull_request'
         uses: actions/github-script@v6
