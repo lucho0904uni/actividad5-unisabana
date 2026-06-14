@@ -430,7 +430,7 @@ $ git commit -m "feat: Actividad 5 - Taller completo"
 
 ### 9.2 Push a GitHub
 
-✅ Repositorio: `https://github.com/eduardogonzalezmejia9-web/Actividad5-testing`  
+✅ Repositorio: `https://github.com/lucho0904uni/actividad5-unisabana`  
 ✅ Rama: `main`  
 ✅ Todos los archivos versionados
 
