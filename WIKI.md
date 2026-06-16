@@ -18,6 +18,8 @@ mas iteracciones
 <img width="921" height="493" alt="image" src="https://github.com/user-attachments/assets/21a7fa4d-6f74-4cd6-abab-763d31649d9d" />
 <img width="921" height="343" alt="image" src="https://github.com/user-attachments/assets/018e849a-cbac-4d5b-bbe9-3d3e61de2131" />
 <img width="921" height="352" alt="image" src="https://github.com/user-attachments/assets/219caba5-0d60-46e5-8e40-edff249f62b7" />
+<img width="921" height="346" alt="image" src="https://github.com/user-attachments/assets/a9152074-b6e5-4771-b25b-187a64a353f4" />
+
 
 ## Consultas de Multas de Tránsito
 
